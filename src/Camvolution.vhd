@@ -2,6 +2,10 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 
 entity Camvolution is
+	generic (
+		IMAGE_WIDTH : integer := 640;
+		IMAGE_HEIGHT : integer := 480
+	);
 	port (
 		sys_clk : in std_logic;
 		led : out std_logic;
@@ -25,31 +29,38 @@ architecture Behavioral of Camvolution is
 	signal efm_mode : boolean;
 begin
 
-	memory_manager : entity work.MemoryManager port map (
-		efm_mode => efm_mode,
-		ebi_address => ebi_address,
-		ebi_data => ebi_data,
-		ebi_wen => ebi_wen,
-		ebi_ren => ebi_ren,
-		daisy_data =>,
-		daisy_valid =>,
-		hdmi_ready =>,
-		hdmi_data =>,
-		sram1_address => sram1_address,
-		sram1_data => sram1_data,
-		sram1_ce => sram1_ce,
-		sram1_oe => sram1_oe,
-		sram1_lb => sram1_lb,
-		sram1_ub => sram1_ub,
-		sram1_we => sram1_we,
-		sram2_address => sram2_address,
-		sram2_data => sram2_data,
-		sram2_ce => sram2_ce,
-		sram2_oe => sram2_oe,
-		sram2_lb => sram2_lb,
-		sram2_ub => sram2_ub,
-		sram2_we => sram2_we,
-	);
+	-- Constant values for memory
+	sram1_lb <= '0';
+	sram1_ub <= '0';
+	sram2_lb <= '0';
+	sram2_up <= '0';
+
+	memory_manager : entity work.memory_manager
+		generic map (
+			IMAGE_WIDTH => IMAGE_WIDTH,
+			IMAGE_HEIGHT => IMAGE_HEIGHT
+		)
+		port map (
+			efm_mode => efm_mode,
+			ebi_address => ebi_address,
+			ebi_data => ebi_data,
+			ebi_wen => ebi_wen,
+			ebi_ren => ebi_ren,
+--			daisy_data =>,
+--			daisy_valid =>,
+--			hdmi_ready =>,
+--			hdmi_data =>,
+			sram1_address => sram1_address,
+			sram1_data => sram1_data,
+			sram1_ce => sram1_ce,
+			sram1_oe => sram1_oe,
+			sram1_we => sram1_we,
+			sram2_address => sram2_address,
+			sram2_data => sram2_data,
+			sram2_ce => sram2_ce,
+			sram2_oe => sram2_oe,
+			sram2_we => sram2_we
+		);
 
 end Behavioral;
 
