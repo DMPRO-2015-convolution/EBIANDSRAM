@@ -22,10 +22,33 @@ entity Camvolution is
 end Camvolution;
 
 architecture Behavioral of Camvolution is
-
+	signal efm_mode : boolean;
 begin
 
 	memory_manager : entity work.MemoryManager port map (
+		efm_mode => efm_mode,
+		ebi_address => ebi_address,
+		ebi_data => ebi_data,
+		ebi_wen => ebi_wen,
+		ebi_ren => ebi_ren,
+		daisy_data =>,
+		daisy_valid =>,
+		hdmi_ready =>,
+		hdmi_data =>,
+		sram1_address => sram1_address,
+		sram1_data => sram1_data,
+		sram1_ce => sram1_ce,
+		sram1_oe => sram1_oe,
+		sram1_lb => sram1_lb,
+		sram1_ub => sram1_ub,
+		sram1_we => sram1_we,
+		sram2_address => sram2_address,
+		sram2_data => sram2_data,
+		sram2_ce => sram2_ce,
+		sram2_oe => sram2_oe,
+		sram2_lb => sram2_lb,
+		sram2_ub => sram2_ub,
+		sram2_we => sram2_we,
 	);
 
 end Behavioral;
