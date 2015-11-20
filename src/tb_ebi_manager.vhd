@@ -122,13 +122,105 @@ BEGIN
 			
 		-- Check EFM mode override 
 		
+		assert not efm_mode
+			report "efm_mode should initially be false"
+			severity failure;
+			
+		fifo_valid <= '1';
+		ebi_address <= "01";
+		ebi_data <= x"0001";
 		
+		wait for clk_period;
 		
+		assert efm_mode
+			report "efm_mode should be true after writing 1 to address 1"
+			severity failure;
+			
+		ebi_data <= x"0000";
+		
+		wait for clk_period;
+		
+		assert not efm_mode
+			report "efm_mode should be false after writing 0 to address 1"
+			severity failure;
+			
+		-- Test control_valid
+		fifo_valid <= '1';
+		ebi_address <= "00";
+		ebi_data <= x"DEAD";
+		
+		wait for clk_period;
+		
+		assert control_valid
+			report "control_valid should be true when address is 0 and fifo is valid"
+			severity failure;
+			
+		fifo_valid <= '0';
+		
+		wait for clk_period;
+		
+		assert not control_valid
+			report "control_valid should be false when fifo is not valid"
+			severity failure;
+			
+		-- Test address 1
+		fifo_valid <= '1';
+		ebi_address <= "01";
+		
+		wait for clk_period;
+		
+		assert not control_valid
+			report "control_valid should be false when ebi_address is 1"
+			severity failure;
+			
+		fifo_valid <= '0';
+		
+		wait for clk_period;
+		
+		assert not control_valid
+			report "control_valid should be false when fifo is not valid"
+			severity failure;
+		
+		-- Test address 2
+		fifo_valid <= '1';
+		ebi_address <= "10";
+		
+		wait for clk_period;
+		
+		assert not control_valid
+			report "control_valid should be false when ebi_address is 2"
+			severity failure;
+			
+		fifo_valid <= '0';
+		
+		wait for clk_period;
+		
+		assert not control_valid
+			report "control_valid should be false when fifo is not valid"
+			severity failure;
+		
+		-- Test address 3
+		fifo_valid <= '1';
+		ebi_address <= "11";
+		
+		wait for clk_period;
+		
+		assert not control_valid
+			report "control_valid should be false when ebi_address is 3"
+			severity failure;
+			
+		fifo_valid <= '0';
+		
+		wait for clk_period;
+		
+		assert not control_valid
+			report "control_valid should be false when fifo is not valid"
+			severity failure;
+			
+			
 		report "Test success";
 		wait;
-		
-
-      wait;
+ 
    end process;
 
 END;
