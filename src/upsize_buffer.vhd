@@ -1,7 +1,7 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 
-entity ResizeBuffer is
+entity upsize_buffer is
 	port (
 		clk : in std_logic;
 		data_in : in std_logic_vector(15 downto 0);
@@ -10,9 +10,9 @@ entity ResizeBuffer is
 		data_out_valid : out std_logic
 	);
 
-end ResizeBuffer;
+end upsize_buffer;
 
-architecture Behavioral of ResizeBuffer is
+architecture Behavioral of upsize_buffer is
 	type state_t is (STATE_LAST, STATE_FIRST, STATE_SHIFT);
 	signal state : state_t;
 	signal stage1, stage2 : std_logic_vector(15 downto 0);

@@ -60,7 +60,7 @@ begin
 
 	efm_controlled <= efm_mode and (ebi_wen = '0' or ebi_ren = '0');
 
-	resize_buffer: entity work.ResizeBuffer
+	upsize_buffer: entity work.upsize_buffer
 		port map (
 			clk => clk,
 			data_in => sram_read_data,
@@ -135,15 +135,22 @@ begin
 						end if;
 					when STATE_WRITE =>
 						state <= STATE_SETUP;
-						if daisy_address = IMAGE_HEIGHT * IMAGE_WIDTH - 1 then
+						if daisy_address = 1.5 * IMAGE_HEIGHT * IMAGE_WIDTH - 1 then
 							daisy_address <= to_unsigned(0, 19);
+							
+							if write_chip = CHIP_SRAM1 then
+								write_chip <= CHIP_SRAM2;
+							else
+								write_chip <= CHIP_SRAM1;
+							end if;
+							
 						else
 							daisy_address <= daisy_address + 1;
 						end if;
 				end case;
 			end if;
 			
-			if hdmi_address = IMAGE_HEIGHT * IMAGE_WIDTH - 1 then
+			if hdmi_address = 1.5 * IMAGE_HEIGHT * IMAGE_WIDTH - 1 then
 				hdmi_address <= to_unsigned(0, 19);
 			elsif hdmi_fifo_full = '1' then
 				hdmi_address <= hdmi_address + 1;
