@@ -27,6 +27,7 @@ entity memory_manager is
 		-- HDMI
 		hdmi_ready, hdmi_clk : in std_logic; -- active high?
 		hdmi_data : out std_logic_vector(23 downto 0);
+		hdmi_valid : out std_logic;
 		
 		-- SRAM
 		sram1_address : out std_logic_vector(18 downto 0);
@@ -50,9 +51,6 @@ architecture Behavioral of memory_manager is
 	
 	signal sram_read_data : std_logic_vector(15 downto 0);
 	signal sram_data_valid : std_logic;
-	signal hdmi_fifo_full : std_logic;
-	signal hdmi_fifo_input : std_logic_vector(23 downto 0);
-	signal hdmi_fifo_input_valid : std_logic;
 
 	signal write_chip : chip_t;
 	signal state : state_t;
@@ -60,25 +58,13 @@ begin
 
 	efm_controlled <= efm_mode and (ebi_wen = '0' or ebi_ren = '0');
 
-	resize_buffer: entity work.ResizeBuffer
+	upsize_buffer: entity work.upsize_buffer
 		port map (
 			clk => clk,
 			data_in => sram_read_data,
-			data_out => hdmi_fifo_input,
+			data_out => hdmi_data,
 			data_in_valid => sram_data_valid,
-			data_out_valid => hdmi_fifo_input_valid
-		);
-
-	-- HDMI FIFO
-	hdmi_fifo : entity work.pixel_fifo
-		port map (
-			wr_clk => clk,
-			rd_clk => hdmi_clk,
-			din => hdmi_fifo_input,
-			wr_en => hdmi_fifo_input_valid,
-			rd_en => hdmi_ready,
-			dout => hdmi_data,
-			full => hdmi_fifo_full
+			data_out_valid => hdmi_valid
 		);
 
 	-- SRAM control
@@ -135,17 +121,24 @@ begin
 						end if;
 					when STATE_WRITE =>
 						state <= STATE_SETUP;
-						if daisy_address = IMAGE_HEIGHT * IMAGE_WIDTH - 1 then
+						if daisy_address = (2 * IMAGE_HEIGHT * IMAGE_WIDTH)/3 - 1 then
 							daisy_address <= to_unsigned(0, 19);
+							
+							if write_chip = CHIP_SRAM1 then
+								write_chip <= CHIP_SRAM2;
+							else
+								write_chip <= CHIP_SRAM1;
+							end if;
+							
 						else
 							daisy_address <= daisy_address + 1;
 						end if;
 				end case;
 			end if;
 			
-			if hdmi_address = IMAGE_HEIGHT * IMAGE_WIDTH - 1 then
+			if hdmi_address = (2 * IMAGE_HEIGHT * IMAGE_WIDTH)/3 - 1 then
 				hdmi_address <= to_unsigned(0, 19);
-			elsif hdmi_fifo_full = '1' then
+			elsif hdmi_ready = '1' then
 				hdmi_address <= hdmi_address + 1;
 			end if;
 

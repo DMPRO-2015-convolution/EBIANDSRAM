@@ -27,6 +27,7 @@ end Camvolution;
 
 architecture Behavioral of Camvolution is
 	signal efm_mode : boolean;
+	signal hdmi_data : std_logic_vector(23 downto 0);
 begin
 
 	-- Constant values for memory
@@ -47,9 +48,9 @@ begin
 			ebi_wen => ebi_wen,
 			ebi_ren => ebi_ren,
 --			daisy_data =>,
---			daisy_valid =>,
---			hdmi_ready =>,
---			hdmi_data =>,
+--			daisy_valid => ,
+			hdmi_ready => hdmi_ready,
+			hdmi_data => hdmi_data,
 			sram1_address => sram1_address,
 			sram1_data => sram1_data,
 			sram1_ce => sram1_ce,
@@ -60,6 +61,18 @@ begin
 			sram2_ce => sram2_ce,
 			sram2_oe => sram2_oe,
 			sram2_we => sram2_we
+		);
+
+	hdmi_fifo : entity work.pixel_fifo
+		port map (
+			wr_clk => clk,
+			rd_clk => hdmi_clk,
+			din => hdmi_data,
+			wr_en => hdmi_valid,
+--			rd_en => rd_en,
+--			dout => dout,
+			full => hdmi_ready
+--			empty => empty
 		);
 
 end Behavioral;
