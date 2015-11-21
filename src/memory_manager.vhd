@@ -50,7 +50,6 @@ architecture Behavioral of memory_manager is
 	signal hdmi_address : unsigned(18 downto 0) := to_unsigned(0, 19);
 	
 	signal sram_read_data : std_logic_vector(15 downto 0);
-	signal sram_data_valid : std_logic;
 
 	signal write_chip : chip_t;
 	signal state : state_t;
@@ -63,7 +62,7 @@ begin
 			clk => clk,
 			data_in => sram_read_data,
 			data_out => hdmi_data,
-			data_in_valid => sram_data_valid,
+			data_in_valid => hdmi_ready,
 			data_out_valid => hdmi_valid
 		);
 
@@ -136,10 +135,12 @@ begin
 				end case;
 			end if;
 			
-			if hdmi_address = (3 * IMAGE_HEIGHT * IMAGE_WIDTH)/2 - 1 then
-				hdmi_address <= to_unsigned(0, 19);
-			elsif hdmi_ready = '1' then
-				hdmi_address <= hdmi_address + 1;
+			if hdmi_ready = '1' then
+				if hdmi_address = (3 * IMAGE_HEIGHT * IMAGE_WIDTH)/2 - 1 then
+					hdmi_address <= to_unsigned(0, 19);
+				elsif hdmi_ready = '1' then
+					hdmi_address <= hdmi_address + 1;
+				end if;
 			end if;
 
 		end if;
