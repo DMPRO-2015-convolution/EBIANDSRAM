@@ -4,6 +4,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 entity downsize_buffer is
 	port (
 		clk : in std_logic;
+		reset : in boolean;
 		data_in : in std_logic_vector(23 downto 0);
 		data_out : out std_logic_vector(15 downto 0);
 		data_in_valid : in std_logic;
@@ -31,8 +32,11 @@ begin
 
 	process(clk) begin
 		if rising_edge(clk) then
-
-			if state /= STATE_SPLIT then
+		
+			if reset then
+				state <= STATE_LAST;
+				can_output <= false;
+			elsif state /= STATE_SPLIT then
 				if data_in_valid = '1' then
 					-- Shift value
 					overflow <= last_value(7 downto 0);

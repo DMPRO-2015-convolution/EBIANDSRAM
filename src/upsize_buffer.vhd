@@ -4,6 +4,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 entity upsize_buffer is
 	port (
 		clk : in std_logic;
+		reset : in boolean;
 		data_in : in std_logic_vector(15 downto 0);
 		data_out : out std_logic_vector(23 downto 0);
 		data_in_valid : in std_logic;
@@ -28,7 +29,11 @@ begin
 
 	process(clk) begin
 		if rising_edge(clk) then
-			if data_in_valid = '1' then
+
+			if reset then
+				state <= STATE_LAST;
+				shifted_last_cycle <= false;
+			elsif data_in_valid = '1' then
 			
 				-- Update state
 				case state is

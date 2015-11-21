@@ -11,6 +11,7 @@ ARCHITECTURE behavior OF tb_downsize_buffer IS
     COMPONENT downsize_buffer
     PORT(
          clk : IN  std_logic;
+			reset : IN boolean;
          data_in : IN  std_logic_vector(23 downto 0);
          data_out : OUT  std_logic_vector(15 downto 0);
          data_in_valid : IN  std_logic;
@@ -22,6 +23,7 @@ ARCHITECTURE behavior OF tb_downsize_buffer IS
 
    --Inputs
    signal clk : std_logic := '0';
+	signal reset : boolean  := false;
    signal data_in : std_logic_vector(23 downto 0) := (others => '0');
    signal data_in_valid : std_logic := '0';
 
@@ -38,6 +40,7 @@ BEGIN
 	-- Instantiate the Unit Under Test (UUT)
    uut: downsize_buffer PORT MAP (
           clk => clk,
+			 reset => reset,
           data_in => data_in,
           data_out => data_out,
           data_in_valid => data_in_valid,
@@ -131,10 +134,23 @@ BEGIN
 		assert data_out_valid = '0'
 			report "Serving more data than available"
 			severity failure;
-			
+
+		-- test reset
+		data_in <= x"ABABAB";
+		data_in_valid <= '1';
+		wait for 2*clk_period;
+		
+		assert data_out_valid = '1'; -- this was tested erlier
+		reset <= true;
+		wait for clk_period;
+		reset <= false;
+		
+		assert data_out_valid = '0'
+			report "Reset not resetting...."
+			severity failure;
 
 		report "Test success!"
-			severity note;
+			severity failure;
 
    end process;
 
