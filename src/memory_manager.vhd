@@ -74,7 +74,7 @@ begin
 			std_logic_vector(hdmi_address);
 
 	sram1_data <=
-			ebi_data when ebi_wen = '0' else
+			ebi_data when efm_mode and ebi_wen = '0' else
 			daisy_data when write_chip = CHIP_SRAM1 and state = STATE_WRITE else
 			(others => 'Z');
 			
@@ -121,7 +121,7 @@ begin
 						end if;
 					when STATE_WRITE =>
 						state <= STATE_SETUP;
-						if daisy_address = (2 * IMAGE_HEIGHT * IMAGE_WIDTH)/3 - 1 then
+						if daisy_address = (3 * IMAGE_HEIGHT * IMAGE_WIDTH)/2 - 1 then
 							daisy_address <= to_unsigned(0, 19);
 							
 							if write_chip = CHIP_SRAM1 then
@@ -136,7 +136,7 @@ begin
 				end case;
 			end if;
 			
-			if hdmi_address = (2 * IMAGE_HEIGHT * IMAGE_WIDTH)/3 - 1 then
+			if hdmi_address = (3 * IMAGE_HEIGHT * IMAGE_WIDTH)/2 - 1 then
 				hdmi_address <= to_unsigned(0, 19);
 			elsif hdmi_ready = '1' then
 				hdmi_address <= hdmi_address + 1;
