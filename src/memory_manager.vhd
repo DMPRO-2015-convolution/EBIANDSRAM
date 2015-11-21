@@ -17,7 +17,7 @@ entity memory_manager is
 		-- EBI
 		ebi_data : inout std_logic_vector(15 downto 0);
 		ebi_address : in std_logic_vector(18 downto 0);
-		ebi_wen, ebi_ren : in std_logic;
+		ebi_wen, ebi_ren, ebi_cs : in std_logic;
 		
 		-- Daisy (active low? active high?)
 		daisy_data : in std_logic_vector(15 downto 0);
@@ -43,8 +43,6 @@ end memory_manager;
 architecture Behavioral of memory_manager is
 	type chip_t is (CHIP_SRAM1, CHIP_SRAM2);
 	type state_t is (STATE_SETUP, STATE_WRITE);
-	
-	signal efm_controlled : boolean;
 
 	signal daisy_address : unsigned(18 downto 0);
 	signal hdmi_address : unsigned(18 downto 0) := to_unsigned(0, 19);
@@ -55,11 +53,10 @@ architecture Behavioral of memory_manager is
 	signal state : state_t;
 begin
 
-	efm_controlled <= efm_mode and (ebi_wen = '0' or ebi_ren = '0');
-
 	upsize_buffer: entity work.upsize_buffer
 		port map (
 			clk => clk,
+			reset => reset,
 			data_in => sram_read_data,
 			data_out => hdmi_data,
 			data_in_valid => hdmi_ready,
@@ -68,8 +65,8 @@ begin
 
 	-- SRAM control
 	sram1_address <=
-			ebi_address when efm_mode else
-			std_logic_vector(daisy_address) when write_chip = CHIP_SRAM1 else
+			ebi_address when efm_mode and ebi_cs = '0' else
+			std_logic_vector(daisy_address) when write_chip = CHIP_SRAM1 and not efm_mode else
 			std_logic_vector(hdmi_address);
 
 	sram1_data <=
@@ -78,15 +75,18 @@ begin
 			(others => 'Z');
 			
 	sram1_ce <= '0' when efm_mode or write_chip /= CHIP_SRAM1 or state = STATE_WRITE else '1';
-	sram1_oe <= '0' when (not efm_mode and write_chip /= CHIP_SRAM1) or (efm_mode and ebi_ren = '0') else '1';
-	sram1_we <= '0' when (not efm_mode and write_chip = CHIP_SRAM1) or (efm_mode and ebi_wen = '0') else '1';
+
+	sram1_oe <= '0' when (not efm_mode and write_chip /= CHIP_SRAM1) or
+			(efm_mode and ebi_ren = '0' and ebi_cs = '0') else '1';
+
+	sram1_we <= '0' when (not efm_mode and write_chip = CHIP_SRAM1) or
+			(efm_mode and ebi_wen = '0' and ebi_cs = '0') else '1';
 		
 	sram2_address <=
 			std_logic_vector(daisy_address) when write_chip = CHIP_SRAM2 else
 			std_logic_vector(hdmi_address);
 
 	sram2_data <=
-			ebi_data when ebi_wen = '0' else
 			daisy_data when write_chip = CHIP_SRAM2 and state = STATE_WRITE else
 			(others => 'Z');
 			
@@ -94,11 +94,11 @@ begin
 	sram2_oe <= '0' when write_chip /= CHIP_SRAM2 else '1';
 	sram2_we <= '0' when write_chip = CHIP_SRAM2 else '1';
 	
-	sram_read_data <= sram1_data when write_chip /= CHIP_SRAM1 else sram2_data;
+	sram_read_data <= sram1_data when write_chip /= CHIP_SRAM1 or efm_mode else sram2_data;
 
 	-- EBI control
 	ebi_data <=
-			sram1_data when efm_mode and ebi_ren = '0' else
+			sram1_data when efm_mode and ebi_ren = '0' and ebi_cs = '0' else
 			(others => 'Z');
 
 	daisy_ready <= '1' when state = STATE_SETUP else '0';
